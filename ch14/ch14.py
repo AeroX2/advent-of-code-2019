@@ -1,57 +1,93 @@
 import re
 import sys
 import math
+from collections import defaultdict
+
+class Chemical:
+    def __init__(self, v):
+        amount,name = v
+        self.name = name
+        self.amount = int(amount)
+
+    def __str__(self):
+        return "%s(%d)" % (self.name,self.amount)
+
+    def __repr__(self):
+        return "%s(%d)" % (self.name,self.amount)
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+resolved = set(['FUEL'])
+total_needed = defaultdict(lambda: 0)
+def process(in_graph, out_graph, fuel_node):
+
+    total = 0
+    total_needed['FUEL'] = 1
+    q = [fuel_node]
+    while (len(q)):
+        node = q.pop(0)
+        resolved.add(node.name)
+        print(resolved)
+        print(total_needed)
+        print(node,end= ' ')
+
+        for chem_out in out_graph[node]:
+            #Check if calculated
+            if (chem_out.name not in resolved):
+                print("ignore")
+                q.append(node)
+                break
+        else:
+            print("continue")
+
+            if ('ORE' in node.name):
+                ore_needed = node.amount
+                for chem_out in out_graph[node]:
+                    amount_needed = total_needed[chem_out.name]
+                    amount_produced = chem_out.amount
+
+                    v = math.ceil(amount_needed / amount_produced) * ore_needed
+                    total += v
+                print("T",total)
+
+            for chem_in in in_graph[node]:
+                amount_needed = total_needed[node.name]
+                amount_produced = [c for c in in_graph if c == node][0].amount #node.amount
+
+                print("B",amount_needed, amount_produced, chem_in, node)
+
+                v = math.ceil(amount_needed / amount_produced) * chem_in.amount
+                total_needed[chem_in.name] += v
+                if not chem_in in q:
+                    q.append(chem_in)
+    return total
+
+in_graph = defaultdict(list)
+out_graph = defaultdict(list)
 
 reactions = []
 for line in open(sys.argv[1]):
     line = line.strip()
     line = line.split(' => ')
 
-    reactants = {}
-    for l in line[0].split(', '):
-        a,b = l.split()
-        reactants[b] = int(a)
+    in_chems = [Chemical(c.split(' ')) for c in line[0].split(', ')]
+    out_chems = [Chemical(c.split(' ')) for c in line[1].split(', ')]
 
-    products = {}
-    for l in line[1].split(', '):
-        a,b = l.split()
-        products[b] = int(a)
+    for chem in out_chems:
+        in_graph[chem].extend(in_chems)
 
-    reactions.append((reactants,products))
+    for chem in in_chems:
+        if (chem.name == 'ORE'):
+            chem.name += str(chem.amount)
 
-def find_reactions_for_reactants(reactant):
-    return [r for r in reactions if product in r[0]]
+        out_graph[chem].extend(out_chems)
 
-def find_reactions_for_product(product):
-    return [r for r in reactions if product in r[1]]
+print(in_graph)
+print(out_graph)
+chem = Chemical(('1','FUEL'))
+print(process(in_graph, out_graph, chem))
 
-#def recurse(output, amount, path=[]):
-#    print(output, amount)
-#    if (output == 'ORE'):
-#        print('Found path', path)
-#        return (True,[])
-#
-#    valid_reactions = []
-#    all_reactions = find_reactions_for_product(output)
-#    for reaction in all_reactions:
-#        # Find all needed items  
-#        print("R", reaction)
-#        for reactant,q in reaction[0].items():
-#            print("Rea", reactant)
-#            valid_path,leftovers = recurse(reactant, q)
-#            if (not valid_path):
-#                print("WAT")
-#                break
-#        else:
-#            valid_reactions.append(reaction)
-#    print("V", valid_reactions)
-#
-#    return (len(valid_reactions) <= 0, [])
-
-def recurse(needed, amount_needed):
-    pass
-
-#
-#
-#print(recurse('FUEL',1,[]))
-#print(brute_force('FUEL',1,[]))
