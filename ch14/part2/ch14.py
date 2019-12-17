@@ -22,11 +22,10 @@ class Chemical:
         return self.name == other.name
 
 def process(in_graph, out_graph, fuel_node):
-
     total = 0
     resolved = set()
     total_needed = defaultdict(lambda: 0)
-    total_needed['FUEL'] = 1
+    total_needed['FUEL'] = fuel_node.amount
     q = [fuel_node]
     while (len(q)):
         node = q.pop(0)
@@ -86,8 +85,34 @@ for line in open(sys.argv[1]):
 
         out_graph[chem].extend(out_chems)
 
-#print(in_graph)
-#print(out_graph)
-chem = Chemical(('1','FUEL'))
-print(process(in_graph, out_graph, chem))
+def binary_search(in_graph, out_graph, low, high):
+    while low <= high:
+        mid = (low + high) // 2
+        chem = Chemical((str(mid),'FUEL'))
+        v = process(in_graph, out_graph, chem)
+        if (v > 1000000000000):
+            high = mid-1
+        elif (v < 1000000000000):
+            low = mid+1
+    print(low,high)
+
+chem = Chemical((str(460664),'FUEL'))
+v = process(in_graph, out_graph, chem)
+print("VVVVV",v)
+
+pm = 0
+m = 1
+while True:
+    chem = Chemical((str(m),'FUEL'))
+    ore = process(in_graph, out_graph, chem)
+    if (ore < 1000000000000):
+        pm = m
+        m *= 2
+    elif (ore > 1000000000000):
+        print("Stage 2")
+        print("Low",pm,"High",m)
+        low = pm
+        high = m
+        binary_search(in_graph, out_graph, low, high)
+        break
 
