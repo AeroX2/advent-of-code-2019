@@ -54,11 +54,11 @@ class Grid:
 
 global_seen = set()
 def flood(start, teleporter):
-    print(start, teleporter)
+    #print(start, teleporter)
     if (start in global_seen):
         return
     global_seen.add(start)
-    print("Going ahead")
+    #print("Going ahead")
 
     q = []
     seen = set()
@@ -82,7 +82,7 @@ def flood(start, teleporter):
 
             v = is_teleporter_entrance(new_pos)
             if (v[0] and v[1] != teleporter):
-                graph[teleporter+("Outer" if is_outer(grid,start) else "Inner")].append((v[1]+("Outer" if is_outer(grid,start) else "Inner"),dist+1,))
+                graph[teleporter+("Outer" if is_outer(grid,start) else "Inner")].append((v[1]+("Outer" if is_outer(grid,pos) else "Inner"),dist+1,))
                 flood(pos, v[1])
                 
                 l = teleporters[teleporter]
@@ -94,30 +94,43 @@ def flood(start, teleporter):
             heappush(q, (dist+1, new_pos))
 
 def bfs(start, end):
-    seen = set()
+    #seen = set()
+
     q = []
     v = (0,0,start,[])
     heappush(q, v)
     while (len(q)):
+        #print(q)
+        #print(list([x[3] for x in q if len(x[3])>0 and x[3][0][0] == 'XFInner']))
+        #print(list([x[3] for x in q if len(x[3])>0 and x[3][0] == 'XFInner']))
         dist, depth, mc, path = heappop(q) #q.pop(0)
+        #print(mc)
+        #print(graph[mc])
 
-        if (mc == end and depth == 0):
+        if (mc[:2] == end[:2] and depth == 1):
             print(path)
-            print(sum(map(lambda x: x[1], path))-1)
+            print(sum(map(lambda x: x[0][1], path))-1)
             break
 
-        if ((mc,) in seen):
+        if (mc[:2] == end[:2]):
             continue
-        seen.add((mc,))
 
-        for nmc in graph[mc[:2]+"Inner"]:
-            d = -1 if nmc[2:] == "Inner" else 1
-            v = (dist+nmc[1], depth+d, nmc[0], path[:]+[nmc])
-            heappush(q, v)
-        for nmc in graph[mc[:2]+"Outer"]:
-            d = -1 if nmc[2:] == "Inner" else 1
-            v = (dist+nmc[1], depth+d, nmc[0], path[:]+[nmc])
-            heappush(q, v)
+        #if (mc in seen):
+        #    print("Continue")
+        #    continue
+        #print("Add",mc)
+        #seen.add(mc)
+
+        for nmc in graph[mc]:
+            portal, odist = nmc
+
+            d = -1 if portal[2:] == "Inner" else 1
+            opp = "Inner" if portal[2:] == "Outer" else "Outer"
+
+            if (depth+d <= 1):
+                v = (dist+odist, depth+d, portal[:2]+opp, path[:]+[(nmc,depth)])
+                heappush(q, v)
+        #print(q)
 
 def is_teleporter_entrance(pos):
     vg = grid.get(pos)
@@ -162,9 +175,9 @@ def is_teleporter_entrance(pos):
 
 def is_outer(grid, p):
     return (p[0] <= grid.min_width+5 or 
-           p[0] >= grid.width-5 or
-           p[1] <= grid.min_height+5 or
-           p[1] >= grid.height-5)
+            p[0] >= grid.width-5 or
+            p[1] <= grid.min_height+5 or
+            p[1] >= grid.height-5)
 
 uc = set(string.ascii_uppercase)
 
