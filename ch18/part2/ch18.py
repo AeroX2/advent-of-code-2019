@@ -120,6 +120,7 @@ grid.put((start[0]+1,start[1]),'#')
 grid.put((start[0]-1,start[1]+1),'$')
 grid.put((start[0]  ,start[1]+1),'#')
 grid.put((start[0]+1,start[1]+1),'%')
+grid.draw()
 
 global_seen = set()
 start = grid.find('@')
@@ -141,18 +142,22 @@ start = grid.find('%')
 graph4 = defaultdict(list)
 flood(start, '%', graph4)
     
-#for y in graph1:
-#    x = graph1[y]
-#    print(y, x)
-#for y in graph2:
-#    x = graph2[y]
-#    print(y, x)
-#for y in graph3:
-#    x = graph3[y]
-#    print(y, x)
-#for y in graph4:
-#    x = graph4[y]
-#    print(y, x)
+for y in graph1:
+    x = graph1[y]
+    print(y, x)
+print()
+for y in graph2:
+    x = graph2[y]
+    print(y, x)
+print()
+for y in graph3:
+    x = graph3[y]
+    print(y, x)
+print()
+for y in graph4:
+    x = graph4[y]
+    print(y, x)
+print()
 #import sys; sys.exit()
 
 seen = set()
@@ -160,61 +165,65 @@ q = []
 v = (0,'@','!','$','%',frozenset(),[])
 heappush(q, v)
 while (len(q)):
+    #print(q)
     dist, mc1, mc2, mc3, mc4, keys_collected, path = heappop(q) #q.pop(0)
 
-    if ((mc1, mc2, mc3, mc4, keys_collected) in seen):
+    if ((mc1,mc2,mc3,mc4,keys_collected) in seen):
         continue
-    seen.add((mc1, mc2, mc3, mc4, keys_collected))
-
-    if (mc1 in lc and
-        not mc1 in keys_collected):
-        keys_collected = set(keys_collected)
-        keys_collected.add(mc1)
-        keys_collected = frozenset(keys_collected)
-    if (mc2 in lc and
-        not mc2 in keys_collected):
-        keys_collected = set(keys_collected)
-        keys_collected.add(mc2)
-        keys_collected = frozenset(keys_collected)
-    if (mc3 in lc and
-        not mc3 in keys_collected):
-        keys_collected = set(keys_collected)
-        keys_collected.add(mc3)
-        keys_collected = frozenset(keys_collected)
-    if (mc4 in lc and
-        not mc4 in keys_collected):
-        keys_collected = set(keys_collected)
-        keys_collected.add(mc4)
-        keys_collected = frozenset(keys_collected)
+    seen.add((mc1,mc2,mc3,mc4,keys_collected))
 
     if (len(keys_collected) >= len(keys)):
         print("Done")
+        print(path)
         print(dist)
         import sys; sys.exit()
 
-    if (mc1 in uc and 
-        not mc1.lower() in keys_collected and 
-        mc2 in uc and 
-        not mc2.lower() in keys_collected and 
-        mc3 in uc and 
-        not mc3.lower() in keys_collected and 
-        mc4 in uc and 
-        not mc4.lower() in keys_collected):
-        continue
-
     for nmc in graph1[mc1]:
-        v = (dist+nmc[1], nmc[0], mc2, mc3, mc4, keys_collected, path[:]+[nmc])
+        new_keys_collected = keys_collected.copy()
+        if (nmc[0] in lc):
+            new_keys_collected = set(new_keys_collected)
+            new_keys_collected.add(nmc[0])
+            new_keys_collected = frozenset(new_keys_collected)
+
+        if (nmc[0] in uc and nmc[0].lower() not in keys_collected):
+            continue
+
+        v = (dist+nmc[1], nmc[0], mc2, mc3, mc4, new_keys_collected, path[:]+[nmc])
         heappush(q, v)
     for nmc in graph2[mc2]:
-        v = (dist+nmc[1], mc1, nmc[0], mc3, mc4, keys_collected, path[:]+[nmc])
+        new_keys_collected = keys_collected.copy()
+        if (nmc[0] in lc):
+            new_keys_collected = set(new_keys_collected)
+            new_keys_collected.add(nmc[0])
+            new_keys_collected = frozenset(new_keys_collected)
+
+        if (nmc[0] in uc and nmc[0].lower() not in keys_collected):
+            continue
+
+        v = (dist+nmc[1], mc1, nmc[0], mc3, mc4, new_keys_collected, path[:]+[nmc])
         heappush(q, v)
     for nmc in graph3[mc3]:
-        v = (dist+nmc[1], mc1, mc2, nmc[0], mc4, keys_collected, path[:]+[nmc])
+        new_keys_collected = keys_collected.copy()
+        if (nmc[0] in lc):
+            new_keys_collected = set(new_keys_collected)
+            new_keys_collected.add(nmc[0])
+            new_keys_collected = frozenset(new_keys_collected)
+
+        if (nmc[0] in uc and nmc[0].lower() not in keys_collected):
+            continue
+
+        v = (dist+nmc[1], mc1, mc2, nmc[0], mc4, new_keys_collected, path[:]+[nmc])
         heappush(q, v)
     for nmc in graph4[mc4]:
-        v = (dist+nmc[1], mc1, mc2, mc3, nmc[0], keys_collected, path[:]+[nmc])
+        new_keys_collected = keys_collected.copy()
+        if (nmc[0] in lc):
+            new_keys_collected = set(new_keys_collected)
+            new_keys_collected.add(nmc[0])
+            new_keys_collected = frozenset(new_keys_collected)
+
+        if (nmc[0] in uc and nmc[0].lower() not in keys_collected):
+            continue
+
+        v = (dist+nmc[1], mc1, mc2, mc3, nmc[0], new_keys_collected, path[:]+[nmc])
         heappush(q, v)
-    #for nmc in graph[mc].parents:
-    #    q.append((nmc[0], keys_collected, dist+nmc[1], path[:]+[nmc]))
-    #print(q)
 
